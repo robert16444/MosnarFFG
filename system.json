@@ -1,8 +1,8 @@
 {
-  "id": "starwarsffg",
-  "title": "Star Wars FFG",
-  "description": "A system for playing Star Wars FFG games.",
-  "version": "1.905",
+  "id": "mosnarffg",
+  "title": "Mosnar FFG",
+  "description": "A system for playing Mosnar FFG games.",
+  "version": "1.0.9",
   "compatibility": {
     "minimum": 12,
     "verified": 12
@@ -413,8 +413,8 @@
   },
   "primaryTokenAttribute": "wounds",
   "secondaryTokenAttribute": "strain",
-  "url": "https://github.com/StarWarsFoundryVTT/StarWarsFFG",
-  "manifest": "https://github.com/StarWarsFoundryVTT/StarWarsFFG/releases/latest/download/system.json",
-  "download": "https://github.com/StarWarsFoundryVTT/StarWarsFFG/releases/download/v1.905/system.zip",
+  "url": "https://github.com/robert16444/MosnarFFG",
+  "manifest": "https://github.com/robert16444/MosnarFFG/releases/latest/download/system.json",
+  "download": "https://github.com/robert16444/MosnarFFG/releases/download/v1.0.9/MosnarFFG-main.zip",
   "license": "LICENSE.txt"
 }

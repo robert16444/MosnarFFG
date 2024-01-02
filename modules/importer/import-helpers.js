@@ -553,11 +553,6 @@ export default class ImportHelpers {
             "groupskill": false,
             "Key": "COERC",
           },
-          "Computers": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "COMP",
-          },
           "Cool": {
             "rank": 0,
             "groupskill": false,
@@ -775,11 +770,6 @@ export default class ImportHelpers {
           "rank": 0,
           "careerskill": false,
           "Key": "COERC",
-        },
-        "Computers": {
-          "rank": 0,
-          "careerskill": false,
-          "Key": "COMP",
         },
         "Cool": {
           "rank": 0,
