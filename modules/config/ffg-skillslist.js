@@ -510,16 +510,6 @@ export const defaultSkillList = [
         "label": "SWFFG.SkillsNamePerception",
         "abrev": "SWFFG.SkillsNamePerception",
       },
-      "Piloting": {
-        "rank": 0,
-        "characteristic": "Agility",
-        "groupskill": false,
-        "careerskill": false,
-        "type": "General",
-        "max": 6,
-        "label": "SWFFG.SkillsNamePiloting",
-        "abrev": "SWFFG.SkillsNamePiloting",
-      },
       "Resilience": {
         "rank": 0,
         "characteristic": "Brawn",
@@ -844,16 +834,6 @@ export const defaultSkillList = [
         "max": 6,
         "label": "SWFFG.SkillsNameNegotiation",
         "abrev": "SWFFG.SkillsNameNegotiation",
-      },
-      "Operating": {
-        "rank": 0,
-        "characteristic": "Intellect",
-        "groupskill": false,
-        "careerskill": false,
-        "type": "General",
-        "max": 6,
-        "label": "SWFFG.SkillsNameOperating",
-        "abrev": "SWFFG.SkillsNameOperating",
       },
       "Perception": {
         "rank": 0,
