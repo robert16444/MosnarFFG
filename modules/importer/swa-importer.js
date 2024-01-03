@@ -182,56 +182,6 @@ export default class SWAImporter extends FormApplication {
                     "careerskill": false,
                     "Key": "ASTRO",
                   },
-                  "Alchemy": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "ALCH",
-                  },
-                  "Astrocartography": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "ASTROCAR",
-                  },
-                  "Cooking": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "COOKINGSKILL",
-                  },
-                  "Riding": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "RIDINGSKILL",
-                  },
-                  "Arcana": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "ARCANASKILL",
-                  },
-                  "Domain Magic": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "DOMAINSKILL",
-                  },
-                  "Magic Resistance": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "MAGICKRESISTANCE",
-                  },
-                  "History": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "HISTORYSKILL",
-                  },
-                  "Lore": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "LORESKILL",
-                  },
-                  "Knowledge": {
-                    "rank": 0,
-                    "careerskill": false,
-                    "Key": "KNOWLEDGESKILL",
-                  },
                   "Athletics": {
                     "rank": 0,
                     "careerskill": false,

@@ -529,56 +529,6 @@ export default class ImportHelpers {
             "groupskill": false,
             "Key": "ASTRO",
           },
-          "Alchemy": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "ALCH",
-          },
-          "Astrocartography": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "ASTROCAR",
-          },
-          "Cooking": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "COOKINGSKILL",
-          },
-          "Riding": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "RIDINGSKILL",
-          },
-          "Arcana": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "ARCANASKILL",
-          },
-          "Domain Magic": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "DOMAINSKILL",
-          },
-          "Magic Resistance": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "MAGICKRESISTANCE",
-          },
-          "History": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "HISTORYSKILL",
-          },
-          "Lore": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "LORESKILL",
-          },
-          "Knowledge": {
-            "rank": 0,
-            "groupskill": false,
-            "Key": "KNOWLEDGESKILL",
-          },
           "Athletics": {
             "rank": 0,
             "groupskill": false,
