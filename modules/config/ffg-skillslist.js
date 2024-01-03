@@ -490,16 +490,6 @@ export const defaultSkillList = [
         "label": "SWFFG.SkillsNameNegotiation",
         "abrev": "SWFFG.SkillsNameNegotiation",
       },
-      "Operating": {
-        "rank": 0,
-        "characteristic": "Intellect",
-        "groupskill": false,
-        "careerskill": false,
-        "type": "General",
-        "max": 6,
-        "label": "SWFFG.SkillsNameOperating",
-        "abrev": "SWFFG.SkillsNameOperating",
-      },
       "Perception": {
         "rank": 0,
         "characteristic": "Cunning",
@@ -1435,16 +1425,6 @@ export const defaultSkillList = [
         "max": 6,
         "label": "SWFFG.SkillsNameNegotiation",
         "abrev": "SWFFG.SkillsNameNegotiation",
-      },
-      "Operating": {
-        "rank": 0,
-        "characteristic": "Intellect",
-        "groupskill": false,
-        "careerskill": false,
-        "type": "General",
-        "max": 6,
-        "label": "SWFFG.SkillsNameOperating",
-        "abrev": "SWFFG.SkillsNameOperating",
       },
       "Perception": {
         "rank": 0,
