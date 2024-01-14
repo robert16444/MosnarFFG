@@ -213,6 +213,22 @@
             "type": "Magic",
             "max": 6
           },
+          "Religion": {
+            "rank": 0,
+            "characteristic": "Willpower",
+            "groupskill": false,
+            "careerskill": false,
+            "type": "General",
+            "max": 6
+          },
+          "Animal Handling": {
+            "rank": 0,
+            "characteristic": "Presence",
+            "groupskill": false,
+            "careerskill": false,
+            "type": "General",
+            "max": 6
+          },
           "Cooking": {
             "rank": 0,
             "characteristic": "Intellect",
@@ -339,6 +355,14 @@
             "groupskill": false,
             "careerskill": false,
             "type": "General",
+            "max": 6
+          },
+          "Xenology": {
+            "rank": 0,
+            "characteristic": "Intellect",
+            "groupskill": false,
+            "careerskill": false,
+            "type": "Knowledge",
             "max": 6
           },
           "Knowledge: Core Worlds": {

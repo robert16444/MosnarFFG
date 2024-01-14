@@ -1,5 +1,6 @@
 export const skills = {
   "Astrogation": { value: "Astrogation", label: "SWFFG.SkillsNameAstrogation", abrev: "SWFFG.SkillsNameAstrogation" },
+  "Animal Handling": { value: "Animal Handling", label: "SWFFG.SkillsNameAnimalHandling", abrev: "SWFFG.SkillsNameAnimalHandling" },
   "Athletics": { value: "Athletics", label: "SWFFG.SkillsNameAthletics", abrev: "SWFFG.SkillsNameAthletics" },
   "Brawl": { value: "Brawl", label: "SWFFG.SkillsNameBrawl", abrev: "SWFFG.SkillsNameBrawlAbbreviation" },
   "Charm": { value: "Charm", label: "SWFFG.SkillsNameCharm", abrev: "SWFFG.SkillsNameCharm" },
@@ -29,11 +30,13 @@ export const skills = {
   "Piloting: Space": { value: "Piloting: Space", label: "SWFFG.SkillsNamePilotingSpace", abrev: "SWFFG.SkillsNamePilotingSpace" },
   "Ranged: Heavy": { value: "Ranged: Heavy", label: "SWFFG.SkillsNameRangedHeavy", abrev: "SWFFG.SkillsNameRangedHeavyAbbreviation" },
   "Ranged: Light": { value: "Ranged: Light", label: "SWFFG.SkillsNameRangedLight", abrev: "SWFFG.SkillsNameRangedLightAbbreviation" },
+  "Religion": { value: "Religion", label: "SWFFG.SkillsNameReligion", abrev: "SWFFG.SkillsNameReligion" },
   "Resilience": { value: "Resilience", label: "SWFFG.SkillsNameResilience", abrev: "SWFFG.SkillsNameResilience" },
   "Skulduggery": { value: "Skulduggery", label: "SWFFG.SkillsNameSkulduggery", abrev: "SWFFG.SkillsNameSkulduggery" },
   "Stealth": { value: "Stealth", label: "SWFFG.SkillsNameStealth", abrev: "SWFFG.SkillsNameStealth" },
   "Streetwise": { value: "Streetwise", label: "SWFFG.SkillsNameStreetwise", abrev: "SWFFG.SkillsNameStreetwise" },
   "Survival": { value: "Survival", label: "SWFFG.SkillsNameSurvival", abrev: "SWFFG.SkillsNameSurvival" },
+  "Xenology": { value: "Xenology", label: "SWFFG.SkillsNameXenology", abrev: "SWFFG.SkillsNameXenology" },
   "Vigilance": { value: "Vigilance", label: "SWFFG.SkillsNameVigilance", abrev: "SWFFG.SkillsNameVigilance" },
 };
 
