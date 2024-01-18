@@ -72,7 +72,7 @@ export const defaultSkillList = [
         "characteristic": "Presence",
         "groupskill": false,
         "careerskill": false,
-        "type": "General",
+        "type": "Social",
         "max": 6,
       },
       "Coercion": {
@@ -80,7 +80,7 @@ export const defaultSkillList = [
         "characteristic": "Willpower",
         "groupskill": false,
         "careerskill": false,
-        "type": "General",
+        "type": "Social",
         "max": 6,
       },
       "Cool": {
@@ -104,7 +104,7 @@ export const defaultSkillList = [
         "characteristic": "Cunning",
         "groupskill": false,
         "careerskill": false,
-        "type": "General",
+        "type": "Social",
         "max": 6,
       },
       "Discipline": {
@@ -120,7 +120,7 @@ export const defaultSkillList = [
         "characteristic": "Presence",
         "groupskill": false,
         "careerskill": false,
-        "type": "General",
+        "type": "Social",
         "max": 6,
       },
       "Mechanics": {
@@ -144,7 +144,7 @@ export const defaultSkillList = [
         "characteristic": "Presence",
         "groupskill": false,
         "careerskill": false,
-        "type": "General",
+        "type": "Social",
         "max": 6,
       },
       "Perception": {
