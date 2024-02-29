@@ -837,7 +837,7 @@ img {
 }
 .starwarsffg .talent-upgrade {
   position: relative;
-  margin: 10px 10px 0 10px;
+  margin: 10px 10px 5px 10px;
 }
 .starwarsffg .talent-upgrade .talent-actions {
   display: none;
@@ -1489,6 +1489,9 @@ img {
   width: 1em;
   height: 1em;
   border: 0;
+}
+.starwarsffg .skillsGrid:last-child {
+  padding-bottom: 2rem;
 }
 .starwarsffg .items {
   margin: 0;
@@ -2379,12 +2382,20 @@ img {
 }
 .starwarsffg .item-sheet-forcepower .talent-cost {
   bottom: -5px;
-  left: 7px;
+  left: 0;
   position: absolute;
-  z-index: 10;
-  width: 60px;
+  background: #CCCCCC;
+  z-index: 60;
+  width: auto;
+  padding: 0 0.25rem 0 0.5rem;
+  font-size: 0.75rem;
+  height: 1.5em;
+  --notchSize: 0.5rem;
+  -webkit-clip-path: polygon(0 0, var(--notchSize) 0%, calc(100% - var(--notchSize)) 0%, 100% var(--notchSize), 100% 100%, calc(100% - var(--notchSize)) 100%, 0 100%, 0% calc(100% - var(--notchSize)));
+  clip-path: polygon(0 0, var(--notchSize) 0%, calc(100% - var(--notchSize)) 0%, 100% var(--notchSize), 100% 100%, calc(100% - var(--notchSize)) 100%, 0 100%, 0% calc(100% - var(--notchSize)));
 }
 .starwarsffg .item-sheet-forcepower .talent-cost input {
+  height: 1.2em;
   width: 25px;
   border: 0;
   background: rgba(0, 0, 0, 0);
@@ -2415,7 +2426,7 @@ img {
   min-height: 600px;
 }
 .starwarsffg .item-sheet-specialization .talent-upgrade {
-  margin: 1px 10px 4px 10px;
+  margin: 5px 10px 10px 10px;
 }
 .starwarsffg .item-sheet-specialization .sheet-body {
   margin: 0;
@@ -2731,6 +2742,32 @@ img {
 }
 .starwarsffg.sheet.item.v2 .item-sheet-itemattachment .sheet-body {
   height: calc(100% - 16.5rem);
+}
+.starwarsffg #combat-tracker .slot-Friendly {
+  background: rgba(21, 87, 134, 0.3);
+  color: #f0f0e0;
+}
+.starwarsffg #combat-tracker .slot-Friendly.slot-unused-true {
+  background: rgba(4, 37, 61, 0.3);
+}
+.starwarsffg #combat-tracker .slot-Enemy {
+  background: rgba(146, 52, 20, 0.3);
+  color: #f0f0e0;
+}
+.starwarsffg #combat-tracker .slot-Enemy.slot-unused-true {
+  background: rgba(87, 9, 9, 0.3);
+}
+.starwarsffg #combat-tracker .slot-claimed {
+  filter: grayscale(100%);
+}
+.starwarsffg #combat-tracker .encounter-controls .actor-header {
+  font-size: 14px;
+}
+.starwarsffg #combat-tracker .token-image.actor-header {
+  width: 24px;
+  height: 24px;
+  max-width: 24px;
+  max-height: 24px;
 }
 
 .initiative-dialog .pool-selector {

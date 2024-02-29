@@ -7,7 +7,7 @@
 // Import Modules
 import { FFG } from "./swffg-config.js";
 import { ActorFFG } from "./actors/actor-ffg.js";
-import { CombatFFG } from "./combat-ffg.js";
+import {CombatFFG, CombatTrackerFFG, updateCombatTracker} from "./combat-ffg.js";
 import { ItemFFG } from "./items/item-ffg.js";
 import { ItemSheetFFG } from "./items/item-sheet-ffg.js";
 import { ItemSheetFFGV2 } from "./items/item-sheet-ffg-v2.js";
@@ -39,6 +39,8 @@ import PauseFFG from "./apps/pause-ffg.js";
 import FlagMigrationHelpers from "./helpers/flag-migration-helpers.js";
 import RollBuilderFFG from "./dice/roll-builder.js";
 import CrewSettings from "./settings/crew-settings.js";
+import {register_dice_enricher, register_oggdude_tag_enricher, register_roll_tag_enricher} from "./helpers/journal.js";
+import {drawAdversaryCount, drawMinionCount, registerTokenControls} from "./helpers/token.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT Initialization                  */
@@ -53,6 +55,13 @@ async function parseSkillList() {
   }
 }
 
+Hooks.on("setup", function (){
+  // add dice symbol rendering to the text editor for journal pages
+  register_roll_tag_enricher();
+  register_oggdude_tag_enricher();
+  register_dice_enricher();
+});
+
 Hooks.once("init", async function () {
   console.log(`Initializing SWFFG System`);
   // Place our classes in their own namespace for later reference.
@@ -60,6 +69,7 @@ Hooks.once("init", async function () {
     ActorFFG,
     ItemFFG,
     CombatFFG,
+    CombatTrackerFFG,
     RollFFG,
     DiceHelpers,
     RollBuilderFFG,
@@ -142,6 +152,23 @@ Hooks.once("init", async function () {
     default: {
       $('link[href*="styles/starwarsffg.css"]').prop("disabled", false);
     }
+  }
+
+  /**
+   * Register the option to use generic slots for combat
+   */
+  game.settings.register("starwarsffg", "useGenericSlots", {
+    name: game.i18n.localize("SWFFG.Settings.UseGenericSlots.Name"),
+    hint: game.i18n.localize("SWFFG.Settings.UseGenericSlots.Hint"),
+    scope: "world",
+    config: true,
+    default: true,
+    type: Boolean,
+    onChange: (rule) => window.location.reload()
+  });
+
+  if (game.settings.get("starwarsffg", "useGenericSlots")) {
+    CONFIG.ui.combat = CombatTrackerFFG;
   }
 
   /**
@@ -287,6 +314,19 @@ Hooks.once("init", async function () {
         }
       }
     });
+
+    Hooks.on("updateToken", async (tokenDocument, options, diffData, tokenId) => {
+      if (Object.keys(options).includes('hidden')) {
+        updateCombatTracker();
+      }
+    });
+
+    Hooks.on("preCreateCombatant", async (combatant, context, options, combatantId) => {
+      await game.combat.handleCombatantAddition(combatant, context, options, combatantId);
+    });
+    Hooks.on("preDeleteCombatant", async (combatant, options, unknownId) => {
+      await game.combat.handleCombatantRemoval(combatant, options, unknownId);
+    });
   }
 
   await gameSkillsList();
@@ -429,12 +469,6 @@ Hooks.once("init", async function () {
   TemplateHelpers.preload();
 });
 
-Hooks.on("renderJournalSheet", (journal, obj, data) => {
-  let content = $(obj).find(".editor-content").html();
-
-  $(obj).find(".editor-content").html(PopoutEditor.renderDiceImages(content));
-});
-
 Hooks.on("renderSidebarTab", (app, html, data) => {
   html.find(".chat-control-icon").click(async (event) => {
     const dicePool = new DicePoolFFG();
@@ -499,61 +533,42 @@ Hooks.on("renderChatMessage", (app, html, messageData) => {
   html.find(".item-display .item-pill, .item-properties .item-pill").on("click", async (event) => {
     event.preventDefault();
     event.stopPropagation();
-    const li = event.currentTarget;
-    let uuid = li.dataset.itemId;
-    let modifierId = li.dataset.modifierId;
-    let modifierType = li.dataset.modifierType;
+    const li = $(event.currentTarget);
+    const itemType = li.attr("data-item-embed-type");
+    let itemData = {};
+    const newEmbed = li.attr("data-item-embed");
 
-    if (li.dataset.uuid) {
-      uuid = li.dataset.uuid;
+    if (newEmbed === "true" && itemType === "itemmodifier") {
+      itemData = {
+        img: li.attr('data-item-embed-img'),
+        name: li.attr('data-item-embed-name'),
+        type: li.attr('data-item-embed-type'),
+        system: {
+          description: li.attr('data-item-embed-description'),
+          attributes: JSON.parse(li.attr('data-item-embed-modifiers')),
+          rank: li.attr('data-item-embed-rank'),
+          rank_current: li.attr('data-item-embed-rank'),
+        },
+      };
+      const tempItem = await Item.create(itemData, {temporary: true});
+      tempItem.sheet.render(true);
+    } else {
+      CONFIG.logger.debug(`Unknown item type: ${itemType}, or lacking new embed system`);
+      const li2 = event.currentTarget;
+      let uuid = li2.dataset.itemId;
+      let modifierId = li2.dataset.modifierId;
+      let modifierType = li2.dataset.modifierType;
+      if (li2.dataset.uuid) {
+        uuid = li2.dataset.uuid;
+      }
+
+      const parts = uuid.split(".");
+
+      const [entityName, entityId, embeddedName, embeddedId] = parts;
+
+      await EmbeddedItemHelpers.displayOwnedItemItemModifiersAsJournal(embeddedId, modifierType, modifierId, entityId);
     }
-
-    const parts = uuid.split(".");
-
-    const [entityName, entityId, embeddedName, embeddedId] = parts;
-
-    await EmbeddedItemHelpers.displayOwnedItemItemModifiersAsJournal(embeddedId, modifierType, modifierId, entityId);
   });
-});
-
-// Hook journal rendering to convert special text into images
-Hooks.on("renderJournalPageSheet", (...args) => {
-  if (args[0]?.object?.type === 'text' && args.length === 3 && args[2].cssClass === 'locked') {
-    // only run if it's a text sheet in the render mode
-    for (let i = 0; i < args[1].length; i++) {
-      // iterate through each HTML section and update it
-      args[1][i].innerHTML = PopoutEditor.renderDiceImages(args[1][i].innerHTML, {});
-      CONFIG.logger.debug("Changed journal page HTML:");
-      CONFIG.logger.debug(args[1][i].innerHTML);
-    }
-    // re-establish toc anchor links
-    args[0].toc = Object.fromEntries(
-      Object.entries(args[0].toc).map((tocItem) => {
-        let newRef;
-        CONFIG.logger.debug("Processing toc item:");
-        CONFIG.logger.debug(tocItem);
-        Object.entries(args[1]).filter((pageItem) => pageItem[0]!=="length").forEach((pageItem) => {
-          CONFIG.logger.debug("Processing page item:");
-          CONFIG.logger.debug(pageItem);
-          if(newRef) {
-            CONFIG.logger.debug(`New element  for anchor "${tocItem[0]}" already found, skipping duplicate search`);
-          } else {
-            const anchorRef = pageItem[1].parentElement.querySelector(`[data-anchor="${tocItem[1].element.attributes["data-anchor"]?.value}"]`);
-            CONFIG.logger.debug(anchorRef);
-            if(anchorRef) {
-              CONFIG.logger.debug(`Found new element for anchor "${tocItem[0]}"`);
-              newRef = anchorRef;
-            }
-          }
-        });
-        if(newRef) {
-          tocItem[1].element = newRef;
-        }
-        return tocItem;
-      })
-    );
-  }
-  return args;
 });
 
 // Handle crew registration
@@ -867,6 +882,37 @@ Hooks.once("ready", async () => {
   dTracker.render(true);
 
   await registerCrewRoles();
+  registerTokenControls();
+
+  if (game.settings.get("starwarsffg", "useGenericSlots")) {
+    if (game.user.isGM) {
+      game.socket.on("system.starwarsffg", async (...args) => {
+        if (game.user.id === game.users.find(i => i.isGM)?.id) {
+          const event_type = args[0].event;
+          if (event_type === "combat") {
+            CONFIG.logger.debug("Processing combat event from player");
+            const data = args[0]?.data;
+            CONFIG.logger.debug(`Received data: ${data.combatId}, ${data.round}, ${data.slot}, ${data.combatantId}`);
+            const combat = game.combats.get(data.combatId);
+            await combat.claimSlot(data.round, data.slot, data.combatantId);
+          }
+        }
+      });
+    }
+  }
+
+  Hooks.on("refreshToken", (token) => {
+    /*
+    Used to render minion count
+    */
+    if (token?.actor?.type === "minion") {
+      drawMinionCount(token);
+    }
+    if (["character"].includes(token?.actor?.type)) {
+      drawAdversaryCount(token);
+    }
+    return token;
+  });
 });
 
 Hooks.once("diceSoNiceReady", (dice3d) => {
@@ -1135,6 +1181,20 @@ async function registerCrewRoles() {
     name: "arrayCrewRoles",
     scope: "world",
     default: defaultArrayCrewRoles,
+    config: false,
+    type: Object,
+  });
+  const initiativeCrewRole = {
+      "role_name":  game.i18n.localize("SWFFG.Crew.Roles.Initiative.Name"),
+      "role_skill": undefined,
+      "use_weapons": false,
+      "use_handling": false
+    };
+  game.settings.register("starwarsffg", "initiativeCrewRole", {
+    module: "starwarsffg",
+    name: "initiativeCrewRole",
+    scope: "world",
+    default: initiativeCrewRole,
     config: false,
     type: Object,
   });
