@@ -825,7 +825,9 @@
       }
     },
     "career" : {
-      "templates": ["core"]
+      "templates": ["core"],
+      "specializations": {},
+      "signatureabilities": {}
     },
     "signatureability": {
       "templates": ["core"],
@@ -838,7 +840,8 @@
         "upgrade5": {},
         "upgrade6": {},
         "upgrade7": {}
-      }
+      },
+      "base_cost": 0
     },
     "itemattachment": {
       "templates": ["core", "basic", "hardpoints", "qualities", "itemattachments"],

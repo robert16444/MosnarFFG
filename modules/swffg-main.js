@@ -32,7 +32,7 @@ import {register_crew} from "./helpers/crew.js";
 
 // Import Dice Types
 import { AbilityDie, BoostDie, ChallengeDie, DifficultyDie, ForceDie, ProficiencyDie, SetbackDie } from "./dice-pool-ffg.js";
-import { createFFGMacro } from "./helpers/macros.js";
+import { createFFGMacro, updateMacro } from "./helpers/macros.js";
 import EmbeddedItemHelpers from "./helpers/embeddeditem-helpers.js";
 import DataImporter from "./importer/data-importer.js";
 import PauseFFG from "./apps/pause-ffg.js";
@@ -172,6 +172,34 @@ Hooks.once("init", async function () {
   if (game.settings.get("starwarsffg", "useGenericSlots")) {
     CONFIG.ui.combat = CombatTrackerFFG;
   }
+
+  /**
+   * Register compendiums for sources for purchasing
+   */
+  game.settings.register("starwarsffg", "specializationCompendiums", {
+    name: game.i18n.localize("SWFFG.Settings.Purchase.Specialization.Name"),
+    hint: game.i18n.localize("SWFFG.Settings.Purchase.Specialization.Hint"),
+    scope: "world",
+    config: true,
+    default: "world.oggdudespecializations",
+    type: String,
+  });
+  game.settings.register("starwarsffg", "signatureAbilityCompendiums", {
+    name: game.i18n.localize("SWFFG.Settings.Purchase.SignatureAbility.Name"),
+    hint: game.i18n.localize("SWFFG.Settings.Purchase.SignatureAbility.Hint"),
+    scope: "world",
+    config: true,
+    default: "world.oggdudesignatureabilities",
+    type: String,
+  });
+  game.settings.register("starwarsffg", "forcePowerCompendiums", {
+    name: game.i18n.localize("SWFFG.Settings.Purchase.ForcePower.Name"),
+    hint: game.i18n.localize("SWFFG.Settings.Purchase.ForcePower.Hint"),
+    scope: "world",
+    config: true,
+    default: "world.oggdudeforcepowers",
+    type: String,
+  });
 
   /**
    * Set an initiative formula for the system
@@ -546,7 +574,7 @@ Hooks.on("renderChatMessage", (app, html, messageData) => {
         name: li.attr('data-item-embed-name'),
         type: li.attr('data-item-embed-type'),
         system: {
-          description: li.attr('data-item-embed-description'),
+          description: unescape(li.attr('data-item-embed-description')),
           attributes: JSON.parse(li.attr('data-item-embed-modifiers')),
           rank: li.attr('data-item-embed-rank'),
           rank_current: li.attr('data-item-embed-rank'),
@@ -585,6 +613,23 @@ function isCurrentVersionNullOrBlank(currentVersion) {
 // Handle migration duties
 Hooks.once("ready", async () => {
   SettingsHelpers.readyLevelSetting();
+
+  if (!game.settings.get("starwarsffg", "token_configured")) {
+    const tokenData = {
+      bar1: {
+        attribute: "stats.wounds",
+      },
+      bar2: {
+        attribute: "stats.strain",
+      },
+      displayBars: 20, // hovered by owner
+    };
+    const existingSettings = game.settings.get("core", "defaultToken");
+    const updateData = foundry.utils.mergeObject(existingSettings, tokenData);
+    game.settings.set("core", "defaultToken", updateData);
+    game.settings.set("starwarsffg", "token_configured", true);
+  }
+
 
   const currentVersion = game.settings.get("starwarsffg", "systemMigrationVersion");
 
@@ -840,7 +885,11 @@ Hooks.once("ready", async () => {
   }
 
   // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
-  Hooks.on("hotbarDrop", (bar, data, slot) => createFFGMacro(data, slot));
+  Hooks.on("hotbarDrop", async (bar, data, slot) => await createFFGMacro(bar, data, slot));
+  Hooks.on("createMacro", async function (...args) {
+    args[0] = await updateMacro(args[0]);
+    return args;
+  });
 
   Hooks.on("closeItemSheetFFG", (item) => {
     Hooks.call(`closeAssociatedTalent_${item.object._id}`, item);
@@ -890,7 +939,7 @@ Hooks.once("ready", async () => {
 
     game.socket.on("system.starwarsffg", async (...args) => {
       const event_type = args[0].event;
-      if (game.user.id === game.users.find(i => i.isGM)?.id) {
+      if (game.user.id === game.users.activeGM?.id) {
         if (event_type === "combat") {
           CONFIG.logger.debug("Processing combat event from player");
           const data = args[0]?.data;
