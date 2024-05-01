@@ -167,7 +167,14 @@ export default class ImportHelpers {
    * @param  {string} id - Entity Id
    * @returns {object} - Entity Object Data
    */
-  static async findCompendiumEntityByImportId(type, id, packId, itemType) {
+  static async findCompendiumEntityByImportId(type, id, packId, itemType, skipCache) {
+    if (skipCache) {
+      const pack = game.packs.get(packId);
+      const contents = await pack.getDocuments();
+      return contents.find((item) => {
+        return item.flags.starwarsffg.ffgimportid === id;
+      });
+    }
     const cachePack = async (packid) => {
       if (!CONFIG.temporary[packid]) {
         const pack = await game.packs.get(packid);
@@ -2292,9 +2299,25 @@ export default class ImportHelpers {
 
         if (updateData?.data?.attributes) {
           // Remove and repopulate all modifiers
-          if (entry.data?.attributes) {
-            for (let k of Object.keys(entry.data.attributes)) {
+          if (entry.system?.attributes) {
+            for (let k of Object.keys(entry.system.attributes)) {
               if (!updateData.data.attributes.hasOwnProperty(k)) updateData.data.attributes[`-=${k}`] = null;
+            }
+          }
+        }
+        if (updateData?.data?.specializations) {
+          // Remove and repopulate all specializations
+          if (entry.system?.specializations) {
+            for (let k of Object.keys(entry.system.specializations)) {
+              if (!updateData.data.specializations.hasOwnProperty(k)) updateData.data.specializations[`-=${k}`] = null;
+            }
+          }
+        }
+        if (updateData?.data?.talents) {
+          // Remove and repopulate all talents
+          if (entry.system?.talents) {
+            for (let k of Object.keys(entry.system.talents)) {
+              if (!updateData.data.talents.hasOwnProperty(k)) updateData.data.talents[`-=${k}`] = null;
             }
           }
         }
@@ -2493,6 +2516,7 @@ export default class ImportHelpers {
           mods = modifiersData.Quality;
         }
       }
+      let unique_mods = 0;
       await this.asyncForEach(mods, async (modifier) => {
         if (modifier.Key) {
           // this is a characteristic or stat or skill or quality modifier.
@@ -2530,9 +2554,10 @@ export default class ImportHelpers {
           const dieModifiers = await ImportHelpers.processDieMod(modifier.DieModifiers);
           output.attributes = mergeObject(output.attributes, dieModifiers.attributes);
         } else {
+          unique_mods++;
           // this is just a text modifier
           const unique = {
-            name: "Unique Mod",
+            name: `Unique Mod ${unique_mods}`,
             type: "itemmodifier",
             data: {
               description: modifier.MiscDesc,
@@ -2541,10 +2566,7 @@ export default class ImportHelpers {
               rank: modifier?.Count ? parseInt(modifier.Count, 10) : 1,
             },
           };
-          const descriptor = Item.create(unique, { temporary: true });
-          descriptor.id = randomID();
-          // TODO: should this really be a different value, or should it be the same thing?
-          descriptor._id = descriptor.id;
+          const descriptor = await Item.create(unique, { temporary: true });
           let rank = "";
           if (unique.data.rank > 1) {
             rank = `${game.i18n.localize("SWFFG.Count")} ${unique.data.rank}`;

@@ -249,10 +249,24 @@ export class ItemSheetFFG extends ItemSheet {
         if (Object.keys(this.object.system.specializations).length === 0) {
           // handlebars sucks
           data.data.specializations = false;
+        } else {
+          for (const specializationId of Object.keys(data.data.specializations)) {
+            if (!fromUuidSync(data.data.specializations[specializationId].source)) {
+              // this item no longer exists, tag it as broken
+              data.data.specializations[specializationId].broken = true;
+            }
+          }
         }
         if (Object.keys(this.object.system.signatureabilities).length === 0) {
           // handlebars sucks
           data.data.signatureabilities = false;
+        } else {
+          for (const signatureAbilityId of Object.keys(data.data.signatureabilities)) {
+            if (!fromUuidSync(data.data.signatureabilities[signatureAbilityId].source)) {
+              // this item no longer exists, tag it as broken
+              data.data.signatureabilities[signatureAbilityId].broken = true;
+            }
+          }
         }
         break;
       case "signatureability": {
@@ -456,6 +470,40 @@ export class ItemSheetFFG extends ItemSheet {
         }
         new Item(item).sheet.render(true);
       });
+    } else if (this.object.type === "species") {
+      try {
+        const dragDrop = new DragDrop({
+          dragSelector: ".item",
+          dropSelector: ".tab.talents",
+          permissions: { dragstart: this._canDragStart.bind(this), drop: this._canDragDrop.bind(this) },
+          callbacks: { drop: this.onDropTalentToSpecies.bind(this) },
+        });
+
+        dragDrop.bind($(`form.editable.item-sheet-${this.object.type}`)[0]);
+
+        // handle click events for talents on species
+        html.find(".item-delete").on("click", async (event) => {
+          event.stopPropagation();
+          const itemId = $(event.target).data("talent-id");
+          const itemType = $(event.target).data("item-type");
+          if (itemType === "talent") {
+            const updateData = this.object.system.talents;
+            delete updateData[itemId];
+            updateData[`-=${itemId}`] = null;
+            await this.object.update({system: {talents: updateData}})
+          }
+        });
+         // handle click events for specialization and signature ability on careers
+        html.find(".item-pill2").on("click", async (event) => {
+          event.stopPropagation();
+          const itemId = $(event.target).data("talent-id");
+          const itemType = $(event.target).data("item-type");
+          let item = await fromUuid(this.object.system.talents[itemId].source);
+          new Item(item).sheet.render(true);
+        });
+      } catch (err) {
+        CONFIG.logger.debug(err);
+      }
     }
 
     // hidden here instead of css to prevent non-editable display of edit button
@@ -636,6 +684,9 @@ export class ItemSheetFFG extends ItemSheet {
             ffgParentApp: this.appId, // TODO: check if this is needed
           }
         },
+        permission: {
+          default: CONST.DOCUMENT_PERMISSION_LEVELS.OWNER,
+        },
       };
       if (this.object.isEmbedded) {
         let ownerObject = await fromUuid(this.object.uuid);
@@ -652,11 +703,17 @@ export class ItemSheetFFG extends ItemSheet {
               ffgIsOwned: this.object.isEmbedded, // TODO: check if this is needed (needed when item on actor)
             }
           },
+          permission: {
+            default: CONST.DOCUMENT_PERMISSION_LEVELS.OWNER,
+          }
         };
       }
 
       delete temp.id;
       delete temp._id;
+      temp.ownership = {
+        default: CONST.DOCUMENT_PERMISSION_LEVELS.OWNER,
+      }
       let tempItem = await Item.create(temp, { temporary: true });
 
       tempItem.sheet.render(true);
@@ -767,6 +824,7 @@ export class ItemSheetFFG extends ItemSheet {
       throw new Error("Refused to buy for item with no found owner actor");
     }
     const availableXP = owner.system.experience.available;
+    const totalXP = owner.system.experience.total;
     const cost = $(li).data("cost");
     if (cost > availableXP) {
       ui.notifications.warn(game.i18n.localize("SWFFG.Actors.Sheets.Purchase.NotEnoughXP"));
@@ -776,6 +834,7 @@ export class ItemSheetFFG extends ItemSheet {
       owner: owner,
       cost: cost,
       availableXP: availableXP,
+      totalXP: totalXP,
     }
   }
 
@@ -783,11 +842,13 @@ export class ItemSheetFFG extends ItemSheet {
     let owner;
     let cost;
     let availableXP;
+    let totalXP;
     try {
       const basic_data = await this._buyHandleClick(li, "specialization");
       owner = basic_data.owner;
       cost = basic_data.cost;
       availableXP = basic_data.availableXP;
+      totalXP = basic_data.totalXP;
     } catch (e) {
       return;
     }
@@ -808,7 +869,7 @@ export class ItemSheetFFG extends ItemSheet {
               input.checked = true;
               await this.object.sheet.submit({preventClose: true});
               owner.update({system: {experience: {available: availableXP - cost}}});
-              await xpLogSpend(owner, `specialization ${baseName} talent ${talent}`, cost);
+              await xpLogSpend(owner, `specialization ${baseName} talent ${talent}`, cost, availableXP - cost, totalXP);
             },
           },
           cancel: {
@@ -827,11 +888,13 @@ export class ItemSheetFFG extends ItemSheet {
     let owner;
     let cost;
     let availableXP;
+    let totalXP;
     try {
       const basic_data = await this._buyHandleClick(li, "forcepower");
       owner = basic_data.owner;
       cost = basic_data.cost;
       availableXP = basic_data.availableXP;
+      totalXP = basic_data.totalXP;
     } catch (e) {
       return;
     }
@@ -852,7 +915,7 @@ export class ItemSheetFFG extends ItemSheet {
               input.checked = true;
               await this.object.sheet.submit({preventClose: true});
               owner.update({system: {experience: {available: availableXP - cost}}});
-              await xpLogSpend(owner, `force power ${baseName} upgrade ${upgrade}`, cost);
+              await xpLogSpend(owner, `force power ${baseName} upgrade ${upgrade}`, cost, availableXP - cost, totalXP);
             },
           },
           cancel: {
@@ -871,11 +934,13 @@ export class ItemSheetFFG extends ItemSheet {
     let owner;
     let cost;
     let availableXP;
+    let totalXP;
     try {
       const basic_data = await this._buyHandleClick(li, "signatureability");
       owner = basic_data.owner;
       cost = basic_data.cost;
       availableXP = basic_data.availableXP;
+      totalXP = basic_data.totalXP;
     } catch (e) {
       return;
     }
@@ -896,7 +961,7 @@ export class ItemSheetFFG extends ItemSheet {
               input.checked = true;
               await this.object.sheet.submit({preventClose: true});
               owner.update({system: {experience: {available: availableXP - cost}}});
-              await xpLogSpend(owner, `signature ability ${baseName} upgrade ${upgrade}`, cost);
+              await xpLogSpend(owner, `signature ability ${baseName} upgrade ${upgrade}`, cost, availableXP - cost, totalXP);
             },
           },
           cancel: {
@@ -1197,7 +1262,7 @@ export class ItemSheetFFG extends ItemSheet {
       }
 
       const foundItem = items.find((i) => {
-        return i.name === itemObject.name || (i.flags?.starwarsffg?.ffgimportid?.length ? i.flags.starwarsffg.ffgimportid === itemObject.flags.starwarsffg.ffgimportid : false);
+        return i?.name === itemObject.name || (i?.flags?.starwarsffg?.ffgimportid?.length ? i?.flags.starwarsffg.ffgimportid === itemObject.flags.starwarsffg.ffgimportid : false);
       });
 
       switch (itemObject.type) {
@@ -1259,6 +1324,31 @@ export class ItemSheetFFG extends ItemSheet {
       await this.object.update({system: {specializations: {[itemObject.id]: {name: itemObject.name, source: itemObject.uuid, id: itemObject.id}}}});
     } else if (itemObject.type === "signatureability") {
       await this.object.update({system: {signatureabilities: {[itemObject.id]: {name: itemObject.name, source: itemObject.uuid, id: itemObject.id}}}});
+    }
+  }
+
+  /**
+   * Handles dragging talents to the species sheet.
+   * @param event
+   * @returns {Promise<boolean>}
+   */
+  async onDropTalentToSpecies(event) {
+    let data;
+
+    try {
+      data = JSON.parse(event.dataTransfer.getData("text/plain"));
+      if (data.type !== "Item") return;
+    } catch (err) {
+      return false;
+    }
+
+    // as of v10, "id" is not passed in - instead, "uuid" is. Let's use the Foundry API to get the item Document from the uuid.
+    const itemObject = await fromUuid(data.uuid);
+
+    if (!itemObject) return;
+
+    if (itemObject.type === "talent") {
+      await this.object.update({system: {talents: {[itemObject.id]: {name: itemObject.name, source: itemObject.uuid, id: itemObject.id}}}});
     }
   }
 

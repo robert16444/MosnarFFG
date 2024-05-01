@@ -46,6 +46,25 @@ export class ActorSheetFFG extends ActorSheet {
     return `${path}/ffg-${this.actor.type}-sheet.html`;
   }
 
+  /** @override */
+  async _onDropItem(event, data) {
+    if (data?.type === "Item") {
+      // this is the stock implementation, except that we do not pass "true" to item.toObject
+      if ( !this.actor.isOwner ) return false;
+      const item = await Item.implementation.fromDropData(data);
+      // do not Draw values from the underlying data source rather than transformed values - we want to use adjusted values
+      const itemData = item.toObject(false);
+
+      // Handle item sorting within the same Actor
+      if ( this.actor.uuid === item.parent?.uuid ) return this._onSortItem(event, itemData);
+
+      // Create the owned item
+      return this._onDropItemCreate(itemData);
+    } else {
+      return super._onDropItem(event, data);
+    }
+  }
+
   /* -------------------------------------------- */
 
   /** @override */
@@ -92,11 +111,13 @@ export class ActorSheetFFG extends ActorSheet {
 
     switch (this.actor.type) {
       case "character":
+      case "nemesis":
+      case "rival":
         if (data.limited) {
           this.position.height = 165;
         }
         // we need to update all specialization talents with the latest talent information
-        if (!this.actor.flags.starwarsffg?.loaded) {
+        if (!this.actor.flags.starwarsffg?.loaded && this.actor.type !== "rival") {
           this._updateSpecialization(data);
         }
 
@@ -203,7 +224,7 @@ export class ActorSheetFFG extends ActorSheet {
         const actor = item.actor
         // we only allow one species and one career, find any other species and remove them.
         if (item.type === "species" || item.type === "career") {
-          if (actor.type === "character") {
+          if (["character", "nemesis", "rival"].includes(actor.type)) {
             const itemToDelete = actor.items.filter((i) => (i.type === item.type) && (i.id !== item.id));
             itemToDelete.forEach((i) => {
                 actor.items.get(i.id).delete();
@@ -220,7 +241,7 @@ export class ActorSheetFFG extends ActorSheet {
           ui.notifications.warn("Critical Damage can only be added to 'vehicle' actor types.");
           return false;
         }
-        if (item.type === "criticalinjury" && actor.type !== "character") {
+        if (item.type === "criticalinjury" && !["character", "nemesis", "rival"].includes(actor.type)) {
           ui.notifications.warn("Critical Injuries can only be added to 'character' actor types.");
           return false;
         }
@@ -286,7 +307,7 @@ export class ActorSheetFFG extends ActorSheet {
       },
     ]);
 
-    html.find("td.ffg-purchase").click(async (ev) => {
+    html.find(".ffg-purchase").click(async (ev) => {
       await this._buyCore(ev)
     });
 
@@ -328,6 +349,15 @@ export class ActorSheetFFG extends ActorSheet {
     new ContextMenu(html, "li.item.forcepower", [sendToChatContextItem, rollForceToChatContextItem]);
     new ContextMenu(html, "div.item", [sendToChatContextItem]);
 
+    if (["nemesis", "rival"].includes(this.actor.type)) {
+      this.sheetoptions = new ActorOptions(this, html);
+      this.sheetoptions.register("enableAutoSoakCalculation", {
+        name: game.i18n.localize("SWFFG.EnableSoakCalc"),
+        hint: game.i18n.localize("SWFFG.EnableSoakCalcHint"),
+        type: "Boolean",
+        default: true,
+      });
+    }
     if (this.actor.type === "character") {
       this.sheetoptions = new ActorOptions(this, html);
       this.sheetoptions.register("enableAutoSoakCalculation", {
@@ -559,6 +589,9 @@ export class ActorSheetFFG extends ActorSheet {
                 rank: li.attr('data-item-embed-rank'),
                 rank_current: li.attr('data-item-embed-rank'),
               },
+              permission: {
+                default: CONST.DOCUMENT_PERMISSION_LEVELS.OBSERVER,
+              }
             };
             const tempItem = await Item.create(itemData, {temporary: true});
             tempItem.sheet.render(true);
@@ -1217,6 +1250,7 @@ export class ActorSheetFFG extends ActorSheet {
     const skill = $(a).data("ability");
     const curRank = this.object.system.skills[skill].rank;
     const availableXP = this.object.system.experience.available;
+    const totalXP = this.object.system.experience.total;
     const careerSkill = this.object.system.skills[skill].careerskill;
     const cost = careerSkill ? (curRank + 1) * 5 : (curRank + 1) * 5 + 5;
 
@@ -1243,7 +1277,7 @@ export class ActorSheetFFG extends ActorSheet {
                   }
                 }
               });
-              await xpLogSpend(game.actors.get(this.object.id), `skill rank ${skill} ${curRank} --> ${curRank + 1}`, cost);
+              await xpLogSpend(game.actors.get(this.object.id), `skill rank ${skill} ${curRank} --> ${curRank + 1}`, cost, availableXP - cost, totalXP);
             },
           },
           cancel: {
@@ -1595,6 +1629,7 @@ export class ActorSheetFFG extends ActorSheet {
     const template = "systems/starwarsffg/templates/dialogs/ffg-confirm-purchase.html";
     let content;
     const availableXP = this.object.system.experience.available;
+    const totalXP = this.object.system.experience.total;
     let itemType;
     if (action === "specialization") {
       const inCareer = this.object.items.find(i => i.type === "career").system.specializations;
@@ -1697,10 +1732,40 @@ export class ActorSheetFFG extends ActorSheet {
             cost: item.system.base_cost,
           });
         }
-        selectableItems = sortDataBy(selectableItems, "name");
-        itemType = game.i18n.localize("TYPES.Item.forcepower");
-        content = await renderTemplate(template, { selectableItems, itemType: itemType });
       }
+      selectableItems = sortDataBy(selectableItems, "name");
+      itemType = game.i18n.localize("TYPES.Item.forcepower");
+      content = await renderTemplate(template, { selectableItems, itemType: itemType });
+    } else if (action === "talent") {
+      const sources = game.settings.get("starwarsffg", "talentCompendiums").split(",");
+      let selectableItems = [];
+      const worldItems = game.items.filter(i => i.type === "talent");
+      for (const worldItem of worldItems) {
+        selectableItems.push({
+          name: worldItem.name,
+          id: worldItem.id,
+          source: worldItem.uuid,
+          cost: worldItem.system.tier * 5,
+        });
+      }
+      for (const source of sources) {
+        const pack = game.packs.get(source);
+        if (!pack) {
+          continue;
+        }
+        const items = await pack.getDocuments();
+        for (const item of items) {
+          selectableItems.push({
+            name: item.name,
+            id: item.id,
+            source: item.uuid,
+            cost: item.system.tier * 5,
+          });
+        }
+      }
+      selectableItems = sortDataBy(selectableItems, "name");
+      itemType = game.i18n.localize("TYPES.Item.talent");
+      content = await renderTemplate(template, { selectableItems, itemType: itemType });
     }
 
     const dialog = new Dialog(
@@ -1727,7 +1792,7 @@ export class ActorSheetFFG extends ActorSheet {
                   },
                 },
               });
-              await xpLogSpend(game.actors.get(this.object.id), `new ${action} ${purchasedItem.name}`, cost);
+              await xpLogSpend(game.actors.get(this.object.id), `new ${action} ${purchasedItem.name}`, cost, availableXP - cost, totalXP);
             },
           },
           cancel: {

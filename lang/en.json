@@ -1,5 +1,7 @@
 {
   "TYPES.Actor.character": "Character",
+  "TYPES.Actor.nemesis": "Nemesis",
+  "TYPES.Actor.rival": "Rival",
   "TYPES.Actor.minion": "Minion",
   "TYPES.Actor.vehicle": "Vehicle",
   "TYPES.Actor.homestead": "Homestead",
@@ -49,6 +51,7 @@
   "SWFFG.TabModifiers": "Modifiers",
   "SWFFG.TabSpecializations": "Specializations",
   "SWFFG.TabCareer": "Career Data",
+  "SWFFG.TabXpLog": "XP log",
   "SWFFG.CharacteristicBrawn": "Brawn",
   "SWFFG.CharacteristicBrawnAbbreviation": "Br",
   "SWFFG.CharacteristicAgility": "Agility",
@@ -125,7 +128,7 @@
   "SWFFG.VehicleSpeed": "Speed",
   "SWFFG.VehicleCurrentSpeed": "Cur Spd",
   "SWFFG.VehicleHandling": "Handling",
-  "SWFFG.VehicleHullTrama": "Hull Trama",
+  "SWFFG.VehicleHullTrauma": "Hull Trauma",
   "SWFFG.VehicleHullStrain": "Sys Strain",
   "SWFFG.VehicleHardPoints": "Hard Pts",
   "SWFFG.VehicleEncumbranceCapacity": "Encum Cpty",
@@ -270,6 +273,7 @@
   "SWFFG.InitiativeMode": "Initiative Mode",
   "SWFFG.InitiativeModeHint": "Choose between Vigilance or Cool for Initiative rolls.",
   "SWFFG.Amount": "Amount",
+  "SWFFG.Note": "Note",
   "SWFFG.NoPlayersConnected": "No players connected",
   "SWFFG.GroupActions": "Group Actions",
   "SWFFG.GrantXP": "Grant XP",
@@ -293,6 +297,7 @@
   "SWFFG.DiceSetback": "Setback",
   "SWFFG.DiceForce": "Force",
   "SWFFG.UpgradeAbility": "Upgrade Ability",
+  "SWFFG.Upgrade": "Upgrade",
   "SWFFG.UpgradeDifficulty": "Upgrade Difficulty",
   "SWFFG.ButtonRoll": "Roll",
   "SWFFG.Rolling": "Rolling",
@@ -675,5 +680,7 @@
   "SWFFG.Settings.Purchase.ForcePower.Name": "Force Power Compendiums",
   "SWFFG.Settings.Purchase.ForcePower.Hint": "Comma seperated compendiums to search for buying Force Powers (no spaces)",
   "SWFFG.Settings.Purchase.SignatureAbility.Name": "Signature Abilities Compendiums",
-  "SWFFG.Settings.Purchase.SignatureAbility.Hint": "Comma seperated compendiums to search for buying Signature Abilities (no spaces)"
+  "SWFFG.Settings.Purchase.SignatureAbility.Hint": "Comma seperated compendiums to search for buying Signature Abilities (no spaces)",
+  "SWFFG.Settings.Purchase.Talent.Name": "Talent Compendiums",
+  "SWFFG.Settings.Purchase.Talent.Hint": "Comma seperated compendiums to search for buying Talents (no spaces)"
 }
