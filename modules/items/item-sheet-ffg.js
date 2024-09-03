@@ -58,7 +58,7 @@ export class ItemSheetFFG extends ItemSheet {
       );
     });
     // this is the end of the de-duplicating -=key stuff
-
+    
     data.data = data.item.system;
 
 
@@ -383,7 +383,7 @@ export class ItemSheetFFG extends ItemSheet {
     });
 
     if (this.object.type === "talent") {
-      if (!Hooks?.events[`closeAssociatedTalent_${this.object._id}`]?.length && typeof this._submitting === "undefined") {
+      if (!Hooks?.events[`closeAssociatedTalent_${this.object._id}`]?.length && (typeof this._submitting === "undefined" || this._priorState <= 0)) {
         Hooks.once(`closeAssociatedTalent_${this.object._id}`, (item) => {
           item.object.flags.clickfromparent = [];
           Hooks.off(`closeAssociatedTalent_${item.object._id}`);
@@ -754,6 +754,7 @@ export class ItemSheetFFG extends ItemSheet {
       event.stopPropagation();
       const li = event.currentTarget;
       let itemType = li.dataset.acceptableType;
+      let parentModType = (["weapon", "armour", "vehicle", "all"]).includes(this.object?.system?.type) ? this.object.system?.type : "all"
 
       let temp = {
         img: "icons/svg/mystery-man.svg",
@@ -774,6 +775,7 @@ export class ItemSheetFFG extends ItemSheet {
         system: {
           attributes: {},
           description: "",
+          type: parentModType
         },
       };
 
